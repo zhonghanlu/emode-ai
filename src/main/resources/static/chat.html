@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>对话界面</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .chat-container {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 1200px;
+            height: 80vh;
+            max-height: 900px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background-color: #2196f3;
+            color: #fff;
+            padding: 8px 16px;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            text-align: center;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .chat-header:hover {
+            background-color: #1e88e5;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            font-size: 18px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message {
+            margin: 10px 20px;
+            padding: 15px;
+            border-radius: 15px;
+            max-width: 70%;
+            word-wrap: break-word;
+            transition: opacity 0.3s ease;
+        }
+
+        .message.user-message {
+            background-color: #e0f7fa;
+            align-self: flex-end;
+        }
+
+        .message.bot-message {
+            background-color: #e6e6e6;
+            align-self: flex-start;
+        }
+
+        .chat-input {
+            display: flex;
+            border-top: 1px solid #ddd;
+            padding: 20px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            margin-right: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input input:focus {
+            border-color: #2196f3;
+            box-shadow: 0 0 5px rgba(33, 150, 243, 0.5);
+            outline: none;
+        }
+
+        .chat-input button {
+            padding: 12px 20px;
+            border: none;
+            background-image: linear-gradient(to right, #2196f3, #1976d2);
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-image 0.3s;
+        }
+
+        .chat-input button:hover {
+            background-image: linear-gradient(to right, #1e88e5, #1565c0);
+        }
+
+        .loading-indicator {
+            text-align: center;
+            font-size: 16px;
+            color: #888;
+            margin: 20px 0;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        @media (max-width: 600px) {
+            .chat-container {
+                width: 95%;
+            }
+
+            .chat-messages {
+                font-size: 16px;
+            }
+        }
+
+        .message {
+            margin: 10px;
+            padding: 12px 18px;
+            border-radius: 15px;
+            max-width: 75%;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .user-message {
+            background: #e3f2fd;
+            align-self: flex-end;
+        }
+
+        .bot-message {
+            background: #f5f5f5;
+            align-self: flex-start;
+        }
+
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+
+        .system-message {
+            background: #fff3e0;
+            width: 100%;
+            text-align: center;
+            max-width: none;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        pre code {
+            display: block;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+        }
+
+        /* 新增标题样式 */
+        .message h1 {
+            font-size: 1.8em;
+            margin: 0.8em 0;
+            border-bottom: 2px solid #666;
+        }
+
+        .message h2 {
+            font-size: 1.6em;
+            margin: 0.7em 0;
+            color: #444;
+        }
+
+        .message h3 {
+            font-size: 1.4em;
+            margin: 0.6em 0;
+        }
+
+        .message h4 {
+            font-size: 1.2em;
+            margin: 0.5em 0;
+        }
+    </style>
+</head>
+<body>
+<div class="chat-container">
+    <div class="chat-header">
+        <h2>Deepseek V3 API 对话</h2>避免过度浪费，超过5轮对话，会重新开始
+    </div>
+    <div class="chat-messages" id="chat-messages">
+        <!-- 对话消息将在这里显示 -->
+    </div>
+    <div class="chat-input">
+        <input type="text" id="user-input" placeholder="输入你的消息..." onKeyDown="handleKeyPress(event)">
+        <button onclick="sendMessage()">发送</button>
+    </div>
+</div>
+
+<!-- 引入 marked 和 highlight.js -->
+<script src="https://cdn.bootcdn.net/ajax/libs/marked/13.0.2/marked.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/default.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js"></script>
+
+<script>
+    // 配置 Markdown 解析器
+    marked.setOptions({
+        breaks: true,
+        headerIds: true,
+        headerPrefix: 'h-',
+        mangle: false, // 禁止自动生成锚点
+        sanitize: false, // 禁用HTML过滤
+        highlight: function (code, lang) {
+            const validLang = hljs.getLanguage(lang) ? lang : 'plaintext';
+            return hljs.highlight(code, {language: validLang}).value;
+        }
+    });
+
+    // 对话状态管理
+    let chatState = {
+        messageCount: 0,
+        MAX_MESSAGES: 10,  // 最大对话轮数
+        currentBotMessage: null,
+        eventSource: null
+    };
+
+    // 显示用户消息
+    function displayUserMessage(content) {
+        const container = document.getElementById('chat-messages');
+        const div = document.createElement('div');
+        div.className = 'message user-message';
+        div.innerHTML = marked.parse(content);
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+        chatState.messageCount++;
+    }
+
+    // 创建 AI 消息容器
+    function createBotMessage() {
+        const container = document.getElementById('chat-messages');
+        const div = document.createElement('div');
+        div.className = 'message bot-message';
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+        return div;
+    }
+
+    // 显示加载状态
+    function showLoading() {
+        const container = document.getElementById('chat-messages');
+        const div = document.createElement('div');
+        div.className = 'message loading';
+        div.textContent = '思考中...';
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    // 标题格式化函数（独立模块）
+    const markdownFormatter = {
+        formatTitles: function (text) {
+            return text.replace(/(^#{1,5})(\S)/gm, '$1 $2');
+        },
+        formatCodeBlocks: function (text) {
+            return text.replace(/```(.*?)\n([\s\S]*?)```/g, '```$1\n$2\n```');
+        }
+    };
+
+    // 处理流式响应
+    function handleStreamResponse(message) {
+        if (!chatState.currentBotMessage) {
+            chatState.currentBotMessage = createBotMessage();
+        }
+
+        // 分步骤格式化
+        let processed = markdownFormatter.formatTitles(message);
+        processed = markdownFormatter.formatCodeBlocks(processed);
+
+        chatState.currentBotMessage.innerHTML = marked.parse(processed);
+        hljs.highlightAll();
+        chatState.currentBotMessage.scrollIntoView({behavior: 'smooth'});
+    }
+
+    // 发送消息核心逻辑
+    async function sendMessage() {
+        const input = document.getElementById('user-input');
+        const message = input.value.trim();
+        if (!message) return;
+
+        // 清除输入框
+        input.value = '';
+
+        // 显示用户消息
+        displayUserMessage(message);
+
+        // 显示加载状态
+        showLoading();
+
+        // 清理旧连接
+        if (chatState.eventSource) {
+            chatState.eventSource.close();
+        }
+
+        // 创建新连接
+        chatState.eventSource = new EventSource(
+            `http://127.0.0.1:8888/emode-ai/chat?message=${encodeURIComponent(message)}`
+        );
+
+        let buffer = '';
+
+        // 流式响应处理
+        chatState.eventSource.onmessage = (event) => {
+            const loadingElements = document.querySelectorAll('.loading');
+            loadingElements.forEach(el => el.remove());
+
+            if (event.data === '[complete]') {
+                chatState.eventSource.close();
+                chatState.currentBotMessage = null;
+                checkMessageLimit();
+                return;
+            }
+
+            buffer += event.data;
+
+            // 实时检测标题
+            const processedBuffer = buffer
+                .split('\n')
+                .map(line => line.replace(/(^#{1,5})(\S)/, '$1$2'))
+                .join('\n');
+
+            handleStreamResponse(processedBuffer);
+        };
+
+        // 错误处理
+        chatState.eventSource.onerror = (err) => {
+            console.error('SSE Error:', err);
+            displaySystemMessage('连接异常，请重试');
+            chatState.eventSource.close();
+        };
+    }
+
+    // 检查消息限制
+    function checkMessageLimit() {
+        if (chatState.messageCount >= chatState.MAX_MESSAGES) {
+            displaySystemMessage('已达到最大对话限制，即将重置...');
+            setTimeout(resetChat, 2000);
+        }
+    }
+
+    // 重置对话
+    function resetChat() {
+        document.getElementById('chat-messages').innerHTML = '';
+        chatState.messageCount = 0;
+        chatState.currentBotMessage = null;
+    }
+
+    // 系统消息显示
+    function displaySystemMessage(content) {
+        const container = document.getElementById('chat-messages');
+        const div = document.createElement('div');
+        div.className = 'message system-message';
+        div.textContent = content;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    // 回车发送支持
+    document.getElementById('user-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+</script>
+</body>
+</html>

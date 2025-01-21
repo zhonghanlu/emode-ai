@@ -1,0 +1,42 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: emode-ai
+  ai:
+    openai:
+      api-key: sk-e4e1789998b442b6ab88ab4a6216c79a
+      base-url: https://api.deepseek.com
+      chat:
+        options:
+          model: deepseek-chat
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 0
+      timeout: 10s
+      lettuce:
+        pool:
+          min-idle: 0
+          max-idle: 8
+          max-active: 8
+          max-wait: -1ms
+
+redisson:
+  threads: 16
+  nettyThreads: 32
+  transportMode: "NIO"
+  singleServerConfig:
+    clientName: "E-Mode"
+    connectionMinimumIdleSize: 32
+    connectionPoolSize: 64
+    idleConnectionTimeout: 10000
+    timeout: 3000
+    retryAttempts: 3
+    retryInterval: 1500
+    subscriptionConnectionMinimumIdleSize: 1
+    subscriptionConnectionPoolSize: 50
+    subscriptionsPerConnection: 5
+    dnsMonitoringInterval: 5000
