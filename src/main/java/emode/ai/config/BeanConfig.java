@@ -1,7 +1,7 @@
 package emode.ai.config;
 
-import emode.ai.advisor.RedisCacheChatMemory;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.memory.InMemoryChatMemory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,7 +14,7 @@ public class BeanConfig {
 
     @Bean
     public ChatMemory chatMemory() {
-        return new RedisCacheChatMemory();
+        return new InMemoryChatMemory();
     }
 
 }
