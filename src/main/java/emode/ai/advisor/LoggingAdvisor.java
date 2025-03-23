@@ -27,7 +27,8 @@ public class LoggingAdvisor extends SimpleLoggerAdvisor {
 //        logger.info("BEFORE: {}", advisedRequest);
         Flux<AdvisedResponse> responseFlux = chain.nextAroundStream(advisedRequest);
         return new MessageAggregator().aggregateAdvisedResponse(responseFlux,
-                advisedResponse -> {});
+                advisedResponse -> {
+                });
 //        logger.info("AFTER: {}", advisedResponse)
     }
 }

@@ -1,16 +1,21 @@
 server:
-  port: 8888
+  port: 18585
 
 spring:
   application:
     name: emode-ai
   ai:
-    openai:
-      api-key: sk-e4e1789998b442b6ab88ab4a6216c79a
-      base-url: https://api.deepseek.com
+    ollama:
+      base-url: http://localhost:11434
       chat:
         options:
-          model: deepseek-chat
+          model: deepseek-r1:14b
+#    openai:
+  #      api-key: sk-e4e1789998b442b6ab88ab4a6216c79a
+  #      base-url: https://api.deepseek.com
+  #      chat:
+  #        options:
+  #          model: deepseek-chat
   data:
     redis:
       host: 127.0.0.1

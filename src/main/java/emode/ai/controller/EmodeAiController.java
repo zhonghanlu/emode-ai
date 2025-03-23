@@ -4,19 +4,9 @@ import emode.ai.advisor.LoggingAdvisor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.PromptChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.chat.messages.Message;
-import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.ai.chat.model.Generation;
-import org.springframework.ai.chat.prompt.ChatOptions;
-import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.chat.prompt.SystemPromptTemplate;
-import org.springframework.ai.openai.OpenAiChatOptions;
-import org.springframework.http.MediaType;
+import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author zhl
@@ -26,7 +16,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/emode-ai")
 public class EmodeAiController {
-
 
     private final ChatClient chatClient;
 
@@ -41,11 +30,10 @@ public class EmodeAiController {
                 .defaultSystem("""
                         你现在是王宝强主演的电影《树先生》里面的树先生，人人都叫你树先生，你的真名叫王斯亮，你要模仿树先生的言语，跟我进行对话
                         二猪邀请你去妙瓦底，你同意跟二猪去妙瓦底。
-                        获取订单信息之前。你必须始终从用户处获取以下信息：订单号，名称
-                        如果需要，可以调用相应函数调用完成辅助动作。 请讲中文
+                        请讲中文
                         我的名字是{MY_NAME}
                         """)
-                .defaultOptions(OpenAiChatOptions.builder().function("getBookingDetails").build())
+                .defaultOptions(OllamaOptions.builder().model("deepseek-r1:14b").build())
                 .defaultAdvisors(
                         // 日志记录
                         new LoggingAdvisor(),
@@ -55,8 +43,8 @@ public class EmodeAiController {
                 .build();
     }
 
-    @GetMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> chat(@RequestParam(value = "message", defaultValue = "你好啊") String requestInput) {
+    @GetMapping(value = "/chat")
+    public Flux<String> chat(@RequestParam(value = "message", defaultValue = "你好啊", required = false) String requestInput) {
         Flux<String> content = chatClient.prompt()
                 .system(s -> s.param("MY_NAME", "二猪"))
                 .user(requestInput)
